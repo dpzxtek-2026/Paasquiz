@@ -2,149 +2,36 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paasquiz 2026 🐣</title>
-    <script src="https://jsdelivr.net"></script>
     <style>
-        :root { --geel: #fff9c4; --oranje: #ffb74d; --tekst: #5d4037; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--geel); color: var(--tekst); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1em; }
-        button { background-color: var(--pasen-oranje, #ffb74d); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1em; }
-        button:hover { background-color: #ffa726; }
-        .hidden { display: none; }
-        .option-btn { background: #f0f4f8; color: #333; margin: 5px 0; border: 1px solid #ddd; }
-        .option-btn.selected { background: #81c784; color: white; border-color: #66bb6a; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #fff9e6; padding: 50px 20px; }
+        .card { background: white; padding: 40px; border-radius: 25px; border: 5px solid #ffcc00; max-width: 400px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #ff9900; font-size: 2.5em; }
+        input { width: 85%; padding: 15px; margin: 20px 0; border-radius: 10px; border: 2px solid #ddd; font-size: 1.1em; }
+        button { background: #ffcc00; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 95%; font-size: 1.2em; }
+        button:hover { background: #ff9900; color: white; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div id="login-section">
-        <h1>🐣 Paasquiz 2026</h1>
-        <div id="adult-login">
-            <select id="user-select">
-                <option value="">Kies je naam...</option>
-                <option value="Nana">Nana</option>
-                <option value="Ronald">Ronald</option>
-                <option value="Mama">Mama</option>
-            </select>
-            <input type="password" id="password" placeholder="Wachtwoord (Naam@paasquiz)">
-            <button onclick="login()">Inloggen</button>
-        </div>
-        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-        <button style="background-color: #a1887f;" onclick="toggleKindMode()">🐥 Ik ben een kind</button>
-        <div id="child-login" class="hidden">
-            <input type="text" id="child-name" placeholder="Wat is je naam?">
-            <button onclick="startQuiz('kind')">Start als Kind</button>
-        </div>
+    <div class="card">
+        <h1>🐰 Paasquiz 2026</h1>
+        <p>Vul je naam in om te beginnen:</p>
+        <input type="text" id="playerName" placeholder="Je naam...">
+        <button onclick="start()">Start de Quiz! ➔</button>
     </div>
 
-    <div id="quiz-section" class="hidden">
-        <h2 id="question-number">Vraag 1</h2>
-        <p id="question-text" style="font-size:1.2em; font-weight:bold;"></p>
-        <div id="options-container"></div>
-        <button id="next-btn" onclick="nextQuestion()" class="hidden">Verstuur & Volgende</button>
-    </div>
-
-    <div id="finish-section" class="hidden">
-        <h2>Vrolijk Pasen! 🐰</h2>
-        <textarea id="guestbook-msg" rows="4" style="width:100%; border-radius:8px; padding:10px; border:1px solid #ddd;" placeholder="Laat een berichtje achter..."></textarea>
-        <button onclick="sendFeedback()">Verstuur naar de muur</button>
-        <p id="thanks" class="hidden" style="color:green; font-weight:bold;">Bericht geplaatst! ✨</p>
-    </div>
-</div>
-
-<script>
-    const supabaseClient = supabase.createClient('https://supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
-    let currentPlayer = "";
-    let currentQuestionIndex = 0;
-    let selectedAnswer = "";
-
-    const questions = [
-        { q: "Waarom verstoppen we eieren in de tuin?", a: ["Voor de sier", "Symbool voor nieuw leven", "Verveeling"], c: 1 },
-        { q: "Hoe noem je een ei dat heel lang gekookt is?", a: ["Zacht", "Vloeibaar", "Hardgekookt"], c: 2 },
-        { q: "Welke kleur heeft een struisvogel-ei?", a: ["Blauw", "Crème/Wit", "Groen"], c: 1 },
-        { q: "Wat is 'eitje tikken'?", a: ["Verven", "Tegen elkaar slaan", "Verstoppen"], c: 1 },
-        { q: "Wie brengt in Frankrijk de eieren?", a: ["De Paashaas", "De Paasklokken", "De postbode"], c: 1 },
-        { q: "Hoeveel eieren legt een kip per jaar?", a: ["10", "100", "250-300"], c: 2 },
-        { q: "Hoe kleur je een ei rood zonder verf?", a: ["Uienschillen", "Zout", "Suiker"], c: 0 },
-        { q: "Wat is een omelet?", a: ["Taart", "Geklutst gebakken ei", "Drankje"], c: 1 },
-        { q: "Wie maakte bekende gouden eieren?", a: ["Picasso", "Fabergé", "Rembrandt"], c: 1 },
-        { q: "Wat doet een vers ei in water?", a: ["Drijven", "Zinken", "Ontploffen"], c: 1 },
-        { q: "Wat brengt de Paashaas meestal?", a: ["Appels", "Choco-eieren", "Cadeautjes"], c: 1 },
-        { q: "Groente voor de Paashaas?", a: ["Sla", "Wortels", "Ui"], c: 1 },
-        { q: "Baby-vogel uit een ei?", a: ["Puppy", "Kuiken", "Lammetje"], c: 1 },
-        { q: "Wie heeft de langste achterpoten?", a: ["Konijn", "Haas", "Muis"], c: 1 },
-        { q: "Oren van een haas?", a: ["Flappers", "Lepels", "Handvaten"], c: 1 },
-        { q: "Waar wonen de meeste wilde konijnen?", a: ["Afrika", "Europa", "Azië"], c: 1 },
-        { q: "Waar slaapt een haas?", a: ["Ondergronds", "In een leger (gras)", "In een boom"], c: 1 },
-        { q: "Hoeveel tanden heeft een konijn?", a: ["4", "10", "28"], c: 2 },
-        { q: "Wie tekende Nijntje?", a: ["Walt Disney", "Dick Bruna", "Rembrandt"], c: 1 },
-        { q: "Wie brengt eieren in Australië?", a: ["Kangoeroe", "Bilby", "Koala"], c: 1 },
-        { q: "Wat is een Paasstol?", a: ["Koekje", "Luxe brood met spijs", "Soep"], c: 1 },
-        { q: "Geel smeersel op een matze?", a: ["Pindakaas", "Lemon curd", "Jam"], c: 1 },
-        { q: "Platte Paas-cracker?", a: ["Beschuit", "Matze", "Toast"], c: 1 },
-        { q: "Welke bloem hoort bij Pasen?", a: ["Roos", "Narcis", "Tulp"], c: 1 },
-        { q: "Wat zit er midden in een stol?", a: ["Choco", "Amandelspijs", "Kaas"], c: 1 },
-        { q: "Wat is Advocaat?", a: ["Beroep", "Eier-likeur", "Vrucht"], c: 1 },
-        { q: "Uitgebreid eten tussen ontbijt en lunch?", a: ["Diner", "Brunch", "Snack"], c: 1 },
-        { q: "Kleur van Pasen?", a: ["Blauw", "Geel", "Zwart"], c: 1 },
-        { q: "Welke takken versieren we?", a: ["Dennen", "Paastakken (Wilg)", "Eiken"], c: 1 },
-        { q: "Choco-eitjes met suikerlaag?", a: ["Bonbons", "Dragee eitjes", "M&M's"], c: 1 }
-    ];
-
-    function toggleKindMode() {
-        document.getElementById('adult-login').classList.toggle('hidden');
-        document.getElementById('child-login').classList.toggle('hidden');
-    }
-
-    async function login() {
-        const name = document.getElementById('user-select').value;
-        const pass = document.getElementById('password').value;
-        if (name && pass === `${name}@paasquiz`) {
-            currentPlayer = name;
-            startQuiz();
-        } else { alert("Fout wachtwoord!"); }
-    }
-
-    function startQuiz(mode) {
-        if(mode === 'kind') currentPlayer = document.getElementById('child-name').value + " (Kind)";
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('quiz-section').classList.remove('hidden');
-        showQuestion();
-    }
-
-    function showQuestion() {
-        const q = questions[currentQuestionIndex];
-        document.getElementById('question-number').innerText = `Vraag ${currentQuestionIndex + 1} / 30`;
-        document.getElementById('question-text').innerText = q.q;
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
-        document.getElementById('next-btn').classList.add('hidden');
-        q.a.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.innerText = opt; btn.className = 'option-btn';
-            btn.onclick = () => { 
-                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected'); selectedAnswer = opt;
-                document.getElementById('next-btn').classList.remove('hidden');
-            };
-            container.appendChild(btn);
-        });
-    }
-
-    async function nextQuestion() {
-        await supabaseClient.from('spelers').upsert({ naam: currentPlayer, vraag_nr: currentQuestionIndex + 1, antwoord: selectedAnswer }, { onConflict: 'naam' });
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) { showQuestion(); } 
-        else { document.getElementById('quiz-section').classList.add('hidden'); document.getElementById('finish-section').classList.remove('hidden'); }
-    }
-
-    async function sendFeedback() {
-        const msg = document.getElementById('guestbook-msg').value;
-        await supabaseClient.from('reacties').insert([{ naam: currentPlayer, bericht: msg }]);
-        document.getElementById('thanks').classList.remove('hidden');
-    }
-</script>
+    <script>
+        function start() {
+            const naam = document.getElementById('playerName').value;
+            if(naam) {
+                // Sla de naam tijdelijk op in de browser
+                localStorage.setItem('paas_naam', naam);
+                // Ga naar de quiz pagina
+                window.location.href = "quiz.html";
+            } else {
+                alert("Vergeet niet je naam in te vullen! 🐣");
+            }
+        }
+    </script>
 </body>
 </html>
