@@ -2,67 +2,60 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Paasquiz 2026 - Bezig... 🐣</title>
+    <title>Paasquiz - Bezig... 🐣</title>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #fff9e6; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 20px; border: 4px solid #ffcc00; max-width: 500px; margin: 20px auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        button { background: #ffcc00; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; }
-        #vTitel { color: #d84315; }
-        #vTekst { font-size: 1.3em; font-weight: bold; min-height: 80px; margin: 20px 0; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #fff9e6; padding: 20px; color: #333; }
+        .card { background: white; padding: 30px; border-radius: 25px; border: 4px solid #ffcc00; max-width: 500px; margin: 40px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        #vTitel { color: #d84315; font-size: 1.1em; }
+        #vTekst { font-size: 1.4em; font-weight: bold; margin: 20px 0; min-height: 80px; }
+        input { width: 90%; padding: 15px; margin: 15px 0; border-radius: 10px; border: 1px solid #ccc; font-size: 1.1em; }
+        button { background: #ffcc00; border: none; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1em; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="card" id="quizBox">
+    <div class="card" id="qBox">
         <h2 id="vTitel">Vraag 1 / 30</h2>
         <div id="vTekst">Laden...</div>
-        <input type="text" id="antw" placeholder="Jouw antwoord...">
-        <button onclick="volgende()">Verstuur & Volgende</button>
+        <input type="text" id="ans" placeholder="Typ je antwoord...">
+        <button onclick="next()">Verstuur & Volgende</button>
     </div>
 
-    <div class="card hidden" id="finishBox">
+    <div class="card hidden" id="fBox">
         <h1>🏁 Klaar!</h1>
-        <p>Gefeliciteerd! Laat een berichtje achter op de muur:</p>
-        <input type="text" id="bericht" placeholder="Je berichtje...">
-        <button onclick="stuurBericht()">Plaats op de muur 💬</button>
-        <p><a href="reacties.html" style="color:#ff9900; font-weight:bold;">Bekijk de Live Muur ➔</a></p>
+        <p>Goed gedaan! Laat een berichtje achter op de muur:</p>
+        <input type="text" id="msg" placeholder="Je berichtje...">
+        <button onclick="send()">Plaats op de muur 💬</button>
     </div>
 
     <script>
-        const supabaseClient = supabase.createClient('https://supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
-        const naam = localStorage.getItem('paas_naam') || "Anoniem";
-        const vragen = ["Waarom verstoppen we eieren in de tuin?", "Hoe noem je een ei dat heel lang gekookt is?", "Kleur struisvogelei in de natuur?", "Wat is 'eitje tikken'?", "Wie brengt eieren in Frankrijk?", "Hoeveel eitjes legt een kip per jaar?", "Rood ei zonder verf?", "Geklutst ei in pan?", "Superdure Russische eieren?", "Blijft een vers ei drijven?", "Lekkerste uit de mand van de haas?", "Oranje groente voor de haas?", "Gele donzige vogel?", "Wie heeft de langste achterpoten?", "Naam lange flappers van haas?", "Woon je in Europa?", "Slaapplek van een haas?", "Hoeveel tanden heeft een konijn?", "Bekend wit konijn (Dick Bruna)?", "Australische eier-brenger?", "Luxe brood met rozijnen?", "Geel citroen-smeersel?", "Dunne knapperige paas-cracker?", "Gele paasbloem?", "Amandel-vulling in de stol?", "Dik geel drankje?", "Uitgebreid eten samen?", "Dé kleur van Pasen?", "Kronkelige takken in vaas?", "Choco-eitjes met suikerlaagje?"];
-        let vNr = 0;
+        const sb = supabase.createClient('https://supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        const user = localStorage.getItem('paas_naam') || "Anoniem";
+        const qs = ["Waarom verstoppen we eieren?", "Ei heel lang gekookt?", "Kleur struisvogelei?", "Wat is eitje tikken?", "Wie brengt eieren in Frankrijk?", "Hoeveel eitjes legt een kip per jaar?", "Rood ei zonder verf?", "Geklutst ei in pan?", "Superdure Russische eieren?", "Blijft een vers ei drijven?", "Lekkerste uit de mand van de haas?", "Oranje groente voor de haas?", "Gele donzige vogel?", "Wie heeft de langste achterpoten?", "Naam lange flappers van haas?", "Woon je in Europa?", "Slaapplek van een haas?", "Hoeveel tanden heeft een konijn?", "Bekend wit konijn (Dick Bruna)?", "Australische eier-brenger?", "Luxe brood met rozijnen?", "Geel citroen-smeersel?", "Dunne knapperige paas-cracker?", "Gele paasbloem?", "Amandel-vulling in de stol?", "Dik geel drankje?", "Uitgebreid eten samen?", "Dé kleur van Pasen?", "Kronkelige takken in vaas?", "Choco-eitjes met suikerlaagje?"];
+        let n = 0;
 
-        // Start de quiz direct
-        window.onload = async () => {
-            document.getElementById('vTekst').innerText = vragen[0];
-            await supabaseClient.from('spelers').insert([{ naam: naam, antwoord: "Quiz gestart", vraag_nr: 1 }]);
-        };
+        window.onload = () => { document.getElementById('vTekst').innerText = qs[0]; };
 
-        async function volgende() {
-            const a = document.getElementById('antw').value;
-            if(!a) { alert("Vul een antwoord in!"); return; }
-            vNr++;
-            if(vNr < 30) {
-                document.getElementById('vTitel').innerText = "Vraag " + (vNr+1) + " / 30";
-                document.getElementById('vTekst').innerText = vragen[vNr];
-                document.getElementById('antw').value = "";
-                await supabaseClient.from('spelers').update({ antwoord: a, vraag_nr: vNr+1 }).eq('naam', naam);
+        async function next() {
+            const a = document.getElementById('ans').value;
+            if(!a) return;
+            n++;
+            if(n < 30) {
+                document.getElementById('vTitel').innerText = `Vraag ${n+1} / 30`;
+                document.getElementById('vTekst').innerText = qs;
+                document.getElementById('ans').value = "";
+                await sb.from('spelers').upsert({ naam: user, antwoord: a, vraag_nr: n+1 }, { onConflict: 'naam' });
             } else {
-                document.getElementById('quizBox').classList.add('hidden');
-                document.getElementById('finishBox').classList.remove('hidden');
-                await supabaseClient.from('spelers').update({ antwoord: a, vraag_nr: 30 }).eq('naam', naam);
+                document.getElementById('qBox').classList.add('hidden');
+                document.getElementById('fBox').classList.remove('hidden');
+                await sb.from('spelers').update({ antwoord: a, vraag_nr: 30 }).eq('naam', user);
             }
         }
 
-        async function stuurBericht() {
-            const b = document.getElementById('bericht').value;
-            if(!b) return;
-            await supabaseClient.from('reacties').insert([{ naam: naam, bericht: b }]);
-            alert("Op de muur gezet!");
+        async function send() {
+            const b = document.getElementById('msg').value;
+            await sb.from('reacties').insert([{ naam: user, bericht: b }]);
             window.location.href = "reacties.html";
         }
     </script>
