@@ -4,33 +4,28 @@
     <meta charset="UTF-8">
     <title>Paasquiz 2026 🐣</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #fff9e6; padding: 50px 20px; }
-        .card { background: white; padding: 40px; border-radius: 25px; border: 5px solid #ffcc00; max-width: 400px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #ff9900; font-size: 2.5em; }
-        input { width: 85%; padding: 15px; margin: 20px 0; border-radius: 10px; border: 2px solid #ddd; font-size: 1.1em; }
-        button { background: #ffcc00; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 95%; font-size: 1.2em; }
-        button:hover { background: #ff9900; color: white; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #fff9e6; padding: 100px 20px; color: #5d4037; }
+        .card { background: white; padding: 40px; border-radius: 30px; border: 5px solid #ffcc00; max-width: 400px; margin: auto; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        h1 { color: #ff9900; font-size: 2.5em; margin-bottom: 10px; }
+        input { width: 90%; padding: 15px; margin: 20px 0; border-radius: 12px; border: 2px solid #ddd; font-size: 1.1em; text-align: center; }
+        button { background: #ffcc00; border: none; padding: 15px 30px; border-radius: 15px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.3em; transition: 0.2s; }
+        button:hover { background: #ff9900; color: white; transform: scale(1.05); }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🐰 Paasquiz 2026</h1>
-        <p>Vul je naam in om te beginnen:</p>
-        <input type="text" id="playerName" placeholder="Je naam...">
+        <h1>🐰 Paasquiz</h1>
+        <p>Hoi! Hoe heet je?</p>
+        <input type="text" id="pName" placeholder="Typ hier je naam...">
         <button onclick="start()">Start de Quiz! ➔</button>
     </div>
-
     <script>
         function start() {
-            const naam = document.getElementById('playerName').value;
-            if(naam) {
-                // Sla de naam tijdelijk op in de browser
-                localStorage.setItem('paas_naam', naam);
-                // Ga naar de quiz pagina
+            const n = document.getElementById('pName').value;
+            if(n) {
+                localStorage.setItem('paas_naam', n);
                 window.location.href = "quiz.html";
-            } else {
-                alert("Vergeet niet je naam in te vullen! 🐣");
-            }
+            } else { alert("Vul eerst je naam in! 🐥"); }
         }
     </script>
 </body>
